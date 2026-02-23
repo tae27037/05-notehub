@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import css from "./App.module.css";
 
@@ -8,22 +8,16 @@ import SearchBox from "../SearchBox/SearchBox";
 import Pagination from "../Pagination/Pagination";
 import NoteList from "../NoteList/NoteList";
 import Modal from "../Modal/Modal";
-import NoteForm, { type NoteFormValues } from "../NoteForm/NoteForm";
+import NoteForm from "../NoteForm/NoteForm";
 
 import {
-  createNote,
-  deleteNote,
   fetchNotes,
   type FetchNotesResponse,
 } from "../../services/noteService";
 
-import type { Note } from "../../types/note";
-
 const PER_PAGE = 12;
 
 export default function App() {
-  const queryClient = useQueryClient();
-
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -38,21 +32,7 @@ export default function App() {
   const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
     queryKey,
     queryFn: () => fetchNotes({ page, perPage: PER_PAGE, search }),
-  });
-
-  const createMutation = useMutation<Note, Error, NoteFormValues>({
-    mutationFn: (payload) => createNote(payload),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["notes"] });
-      setIsModalOpen(false);
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteNote(id),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["notes"] });
-    },
+    placeholderData: keepPreviousData, // ✅ плавна пагінація без мерехтіння
   });
 
   const notes = data?.notes ?? [];
@@ -83,22 +63,11 @@ export default function App() {
       {isLoading && <p>Loading...</p>}
       {isError && <p>Something went wrong</p>}
 
-      {notes.length > 0 && (
-        <NoteList
-          notes={notes}
-          onDelete={(id: string) => deleteMutation.mutate(id)}
-        />
-      )}
+      {notes.length > 0 && <NoteList notes={notes} />}
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
-          <NoteForm
-            onCancel={() => setIsModalOpen(false)}
-            isSubmitting={createMutation.isPending}
-            onSubmit={async (values: NoteFormValues) => {
-              await createMutation.mutateAsync(values);
-            }}
-          />
+          <NoteForm onCancel={() => setIsModalOpen(false)} />
         </Modal>
       )}
     </div>
