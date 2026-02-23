@@ -2,9 +2,9 @@ import ReactPaginate from "react-paginate";
 import css from "./Pagination.module.css";
 
 interface PaginationProps {
-  page: number; // 1-based
+  page: number;
   totalPages: number;
-  onPageChange: (page: number) => void; // 1-based
+  onPageChange: (page: number) => void;
 }
 
 export default function Pagination({

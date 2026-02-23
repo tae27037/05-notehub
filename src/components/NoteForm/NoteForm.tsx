@@ -40,7 +40,7 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
     mutationFn: (payload) => createNote(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["notes"] });
-      onCancel(); // закриваємо модалку після успішного створення
+      onCancel();
     },
   });
 

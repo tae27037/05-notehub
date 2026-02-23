@@ -32,7 +32,7 @@ export default function App() {
   const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
     queryKey,
     queryFn: () => fetchNotes({ page, perPage: PER_PAGE, search }),
-    placeholderData: keepPreviousData, // ✅ плавна пагінація без мерехтіння
+    placeholderData: keepPreviousData,
   });
 
   const notes = data?.notes ?? [];
